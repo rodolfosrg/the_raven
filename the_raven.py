@@ -4,6 +4,17 @@ with open('a_raven.ascii', 'r') as intro: print intro.read()
 raw_input("Press ENTER to continue...")
 os.system('cls')
 
+weights = {'shape':10,
+		   'size':3,
+		   'inside':3,
+		   'fill':8,
+		   'above':4,
+		   'overlaps':3,
+		   'angle':7,
+		   'left-of':4,
+		   'horizontal-flip':8,
+		   'vertical-flip':8}
+
 class Figure(object):
 	def __init__(self,name):
 		self.name = name
@@ -49,7 +60,17 @@ def parse_picture(lines, start, finish):
 def weigh_transformations(f1, f2):
 	print f1.name
 	print f2.name
-	return 90
+	weight = 0
+	for p in f1.properties:
+		print p + ' ' + f1.properties[p]
+		if p in f2.properties:
+			if f1.properties[p] == f2.properties[p]:
+				weight += 20
+			else:
+				weight -= weights[p]
+		else:
+			weight -= 10
+	return weight
 
 for x in range(5,6): #Change this to (1,21) in final version
 	print "Loading problem %02d..." % (x,)
@@ -82,7 +103,6 @@ for x in range(5,6): #Change this to (1,21) in final version
 		b_figures = b.figure_list.keys()
 		possible_transformations = [['' for x in a_figures]
 		                                for x in b_figures]
-		print possible_transformations
 		for col, col_name in enumerate(a_figures):
 			for row, row_name in enumerate(b_figures):
 				print '' + str(col) + ',' + str(row) + ':' 
