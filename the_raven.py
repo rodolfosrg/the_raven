@@ -4,9 +4,9 @@ with open('a_raven.ascii', 'r') as intro: print intro.read()
 raw_input("Press ENTER to continue...")
 os.system('cls')
 
-weights = {'shape':10,
+weights = {'shape':9,
 		   'size':3,
-		   'inside':3,
+		   'inside':2,
 		   'fill':8,
 		   'above':4,
 		   'overlaps':3,
@@ -58,26 +58,37 @@ def parse_picture(lines, start, finish):
 	return picture
 
 def weigh_transformations(f1, f2):
-	print f1.name
-	print f2.name
+	print f1
+	print f2
 	weight = 0
 	for p in f1.properties:
-		print p + ' ' + f1.properties[p]
 		if p in f2.properties:
 			if f1.properties[p] == f2.properties[p]:
-				weight += 20
+				weight += weights[p]
 			else:
 				weight -= weights[p]
 		else:
-			weight -= 10
+			weight -= weights[p]
+	print weight
 	return weight
 
-for x in range(5,6): #Change this to (1,21) in final version
+def two_dim_max(matrix):
+	largest = -500
+	for i, v in enumerate(matrix):
+		candidate = max(v)
+		if candidate > largest:
+			largest = candidate
+			row = i
+			column = v.index(largest)
+	return row, column
+
+for x in range(12,13): #Change this to (1,21) in final version
 	print "Loading problem %02d..." % (x,)
 	with open('Problems/2x1BasicProblem%02d.txt' % (x,), 'r') as p:
 		lines = list(p)
 		lines.append("\n,")
 		print lines
+		# Parse pictures into Picture/Figure structures
 		for index, line in enumerate(lines[3:]):
 			if line[0] == 'A': index_a = index + 3
 			if line[0] == 'B': index_b = index + 3
@@ -88,7 +99,6 @@ for x in range(5,6): #Change this to (1,21) in final version
 			if line[0] == '4': index_s4 = index + 3
 			if line[0] == '5': index_s5 = index + 3
 			if line[0] == '6': index_s6 = index + 3
-
 		a = parse_picture(lines, index_a, index_b)
 		b = parse_picture(lines, index_b, index_c)
 		c = parse_picture(lines, index_c, index_s1)
@@ -99,14 +109,31 @@ for x in range(5,6): #Change this to (1,21) in final version
 		s5 = parse_picture(lines, index_s5, index_s6)
 		s6 = parse_picture(lines, index_s6, len(lines))
 		print a,b,c,s1,s2,s3,s4,s6
+
+		# Generate transformation weights matrix
 		a_figures = a.figure_list.keys()
 		b_figures = b.figure_list.keys()
-		possible_transformations = [['' for x in a_figures]
+		transformations_weights = [['' for x in a_figures]
 		                                for x in b_figures]
 		for col, col_name in enumerate(a_figures):
 			for row, row_name in enumerate(b_figures):
 				print '' + str(col) + ',' + str(row) + ':' 
-				possible_transformations[row][col] = weigh_transformations(a.figure_list[a_figures[col]],
-				                                                           b.figure_list[b_figures[row]])
+				transformations_weights[row][col] = weigh_transformations(a.figure_list[a_figures[col]],
+				                                                          b.figure_list[b_figures[row]])
+		print transformations_weights
 
-		print possible_transformations
+		# Generate figure relations list
+		figure_relations = {}
+		for figure in a_figures:
+			figure_relations[figure] = ''
+		while len(transformations_weights):
+			relation = two_dim_max(transformations_weights)
+			figure_relations[a_figures[relation[1]]] = b_figures[relation[0]]
+			print a_figures[relation[1]], b_figures[relation[0]]
+			del(a_figures[relation[1]])
+			del(b_figures[relation[0]])
+			del(transformations_weights[relation[0]])
+			for index, val in enumerate(transformations_weights):
+				del(transformations_weights[index][relation[1]])
+			print transformations_weights
+		print figure_relations	
