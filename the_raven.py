@@ -4,16 +4,16 @@ with open('a_raven.ascii', 'r') as intro: print intro.read()
 raw_input("Press ENTER to continue...")
 os.system('cls')
 
-weights = {'shape':9,
-		   'size':3,
+weights = {'shape':7,
+		   'size':6,
 		   'inside':2,
-		   'fill':8,
+		   'fill':7,
 		   'above':4,
 		   'overlaps':3,
-		   'angle':7,
+		   'angle':6,
 		   'left-of':4,
-		   'horizontal-flip':8,
-		   'vertical-flip':8}
+		   'horizontal-flip':6,
+		   'vertical-flip':6}
 
 class Figure(object):
 	def __init__(self,name):
@@ -106,6 +106,22 @@ def weigh_pictures_transformations(p1,p2):
 			                                                  p2.figure_list[p2_figures[row]])
 	return weights
 
+def apply_transformations(p, template, relations):
+	option = Picture()
+	for old_figure_name, old_figure in p.figure_list.iteritems():
+		new_name = relations[old_figure_name]
+		transformations = template[new_name]
+		if transformations != 'figure_deleted':
+			figure = Figure(new_name)
+			for new_key, new_value in transformations.iteritems():
+				if new_value == 'same':
+					figure.properties[new_key] = old_figure.properties[new_key]
+				elif not new_value == 'deleted':
+					figure.properties[new_key] = new_value
+			option.add_figure(figure)
+	return option
+
+
 for x in range(5,6): #Change this to (1,21) in final version
 	print "Loading problem %02d..." % (x,)
 	with open('Problems/2x1BasicProblem%02d.txt' % (x,), 'r') as p:
@@ -133,11 +149,10 @@ for x in range(5,6): #Change this to (1,21) in final version
 		s6 = parse_picture(lines, index_s6, len(lines))
 		print a,b,c,s1,s2,s3,s4,s6
 
-		# Generate transformation weights matrix
-		transformations_weights = weigh_pictures_transformations(a,b)
-
 		# Generate figure relations list between pictures A and B
-		a_b_figures_relations = relate_figures(transformations_weights,a,b)
+		a_b_transformations_weights = weigh_pictures_transformations(a,b)
+		a_b_figures_relations = relate_figures(a_b_transformations_weights,a,b)
+		print a_b_figures_relations
 
 		# Generate transformation template
 		transformations_template = {}
@@ -159,4 +174,11 @@ for x in range(5,6): #Change this to (1,21) in final version
 				transformations_template[old] = 'figure_deleted'
 		print transformations_template
 
-		# Generate figure relations list between A and C 
+		# Generate figure relations list between pictures A and C
+		a_c_transformations_weights = weigh_pictures_transformations(c,a)
+		a_c_figures_relations = relate_figures(a_c_transformations_weights,c,a)
+		print a_c_figures_relations
+
+		# Apply transformations template to C
+		option = apply_transformations(c, transformations_template, a_c_figures_relations)
+		print option
