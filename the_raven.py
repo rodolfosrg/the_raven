@@ -57,9 +57,7 @@ def parse_picture(lines, start, finish):
 			f = Figure(line[1])
 	return picture
 
-def weigh_transformations(f1, f2):
-	print f1
-	print f2
+def weigh_figures_transformations(f1, f2):
 	weight = 0
 	for p in f1.properties:
 		if p in f2.properties:
@@ -69,7 +67,6 @@ def weigh_transformations(f1, f2):
 				weight -= weights[p]
 		else:
 			weight -= weights[p]
-	print weight
 	return weight
 
 def two_dim_max(matrix):
@@ -82,12 +79,38 @@ def two_dim_max(matrix):
 			column = v.index(largest)
 	return row, column
 
-for x in range(12,13): #Change this to (1,21) in final version
+def relate_figures(weights,f1,f2):
+	k1 = f1.figure_list.keys()
+	k2 = f2.figure_list.keys()
+	figures_relations = {}
+	for figure in k1:
+		figures_relations[figure] = ''
+	while len(weights):
+		relation = two_dim_max(weights)
+		figures_relations[k1[relation[1]]] = k2[relation[0]]
+		del(k1[relation[1]])
+		del(k2[relation[0]])
+		del(weights[relation[0]])
+		for index, val in enumerate(weights):
+			del(weights[index][relation[1]])
+	return figures_relations
+
+def weigh_pictures_transformations(p1,p2):
+	p1_figures = p1.figure_list.keys()
+	p2_figures = p2.figure_list.keys()
+	weights = [['' for x in p1_figures]
+	               for x in p2_figures]
+	for col, col_name in enumerate(p1_figures):
+		for row, row_name in enumerate(p2_figures):
+			weights[row][col] = weigh_figures_transformations(p1.figure_list[p1_figures[col]],
+			                                                  p2.figure_list[p2_figures[row]])
+	return weights
+
+for x in range(5,6): #Change this to (1,21) in final version
 	print "Loading problem %02d..." % (x,)
 	with open('Problems/2x1BasicProblem%02d.txt' % (x,), 'r') as p:
 		lines = list(p)
 		lines.append("\n,")
-		print lines
 		# Parse pictures into Picture/Figure structures
 		for index, line in enumerate(lines[3:]):
 			if line[0] == 'A': index_a = index + 3
@@ -111,29 +134,29 @@ for x in range(12,13): #Change this to (1,21) in final version
 		print a,b,c,s1,s2,s3,s4,s6
 
 		# Generate transformation weights matrix
-		a_figures = a.figure_list.keys()
-		b_figures = b.figure_list.keys()
-		transformations_weights = [['' for x in a_figures]
-		                                for x in b_figures]
-		for col, col_name in enumerate(a_figures):
-			for row, row_name in enumerate(b_figures):
-				print '' + str(col) + ',' + str(row) + ':' 
-				transformations_weights[row][col] = weigh_transformations(a.figure_list[a_figures[col]],
-				                                                          b.figure_list[b_figures[row]])
-		print transformations_weights
+		transformations_weights = weigh_pictures_transformations(a,b)
 
-		# Generate figure relations list
-		figure_relations = {}
-		for figure in a_figures:
-			figure_relations[figure] = ''
-		while len(transformations_weights):
-			relation = two_dim_max(transformations_weights)
-			figure_relations[a_figures[relation[1]]] = b_figures[relation[0]]
-			print a_figures[relation[1]], b_figures[relation[0]]
-			del(a_figures[relation[1]])
-			del(b_figures[relation[0]])
-			del(transformations_weights[relation[0]])
-			for index, val in enumerate(transformations_weights):
-				del(transformations_weights[index][relation[1]])
-			print transformations_weights
-		print figure_relations	
+		# Generate figure relations list between pictures A and B
+		a_b_figures_relations = relate_figures(transformations_weights,a,b)
+
+		# Generate transformation template
+		transformations_template = {}
+		for index, relation in enumerate(a_b_figures_relations.iteritems()):
+			old = relation[0]
+			new = relation[1]
+			transformations_template[old] = {}
+			if new in b.figure_list:
+				for p, a_v in a.figure_list[old].properties.iteritems():
+					if p in b.figure_list[new].properties:
+						b_v = b.figure_list[new].properties[p]
+						if a_v == b_v:
+							transformations_template[old][p] = 'same'
+						else:
+							transformations_template[old][p] = b_v
+					else:
+						transformations_template[old][p] = 'deleted'
+			else:
+				transformations_template[old] = 'figure_deleted'
+		print transformations_template
+
+		# Generate figure relations list between A and C 
