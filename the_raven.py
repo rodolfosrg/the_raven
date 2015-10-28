@@ -1,4 +1,5 @@
 import os, re, copy, traceback
+from random import randint
 os.system('cls')
 with open('a_raven.ascii', 'r') as intro: print intro.read()
 raw_input("Press ENTER to continue...")
@@ -116,8 +117,8 @@ def apply_transformations(p, template, relations):
 			for new_key, new_value in transformations.iteritems():
 				if new_value == 'same':
 					#print old_figure.properties
-					hey = old_figure.properties[new_key]
-					figure.properties[new_key] = hey
+					old_value = old_figure.properties[new_key]
+					figure.properties[new_key] = old_value
 				elif not new_value == 'deleted':
 					figure.properties[new_key] = new_value
 			option.add_figure(figure)
@@ -224,6 +225,10 @@ for x in range(1,21): #Change this to (1,21) in final version
 			solutions.append(solution_weights.index(max(solution_weights))+1)
 	except:
 		print traceback.format_exc()
-		solutions.append(0)
-print solutions
-print corrects
+		solutions.append(randint(1,6))
+print 'My Answers:     ', solutions
+print 'Correct answers:', corrects
+total = 0
+for s, c in zip(solutions, corrects):
+	total += 1 if s==c else 0
+print total, 'out of', len(solutions), 'correct'
