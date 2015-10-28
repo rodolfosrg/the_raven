@@ -174,6 +174,13 @@ for x in range(5,6): #Change this to (1,21) in final version
 				transformations_template[old] = 'figure_deleted'
 		print transformations_template
 
+		# Add 'added' properties to the transformation template
+		for name, figure in b.figure_list.iteritems():
+			for p, v in figure.properties.iteritems():
+				if not p in transformations_template[name]:
+					transformations_template[name][p] = v
+		print transformations_template
+
 		# Generate figure relations list between pictures A and C
 		a_c_transformations_weights = weigh_pictures_transformations(c,a)
 		a_c_figures_relations = relate_figures(a_c_transformations_weights,c,a)
